@@ -585,6 +585,16 @@ class FileSyncer(object):
         src_stat = remotestat
         dst_stat = localstat
       dst_name = self.dst[i] + name
+      if self.rename_dst:
+          logging.info('%s-Renaming-Conflicting: %r', self.push[i], dst_name)
+          dst_rename = '%s_%d' % (dst_name, dst_stat.st_mtime)
+          if os.path.exists(dst_rename):
+              logging.info('Rename Target Exists: %s', dst_rename)
+              continue
+          if not self.dry_run:
+              os.rename(dst_name, dst_rename)
+          src_only_prepend[i].append((name, src_stat))
+          continue
       logging.info('%s-Delete-Conflicting: %r', self.push[i], dst_name)
       if stat.S_ISDIR(localstat.st_mode) or stat.S_ISDIR(remotestat.st_mode):
         if not self.allow_replace:
@@ -788,6 +798,13 @@ def main() -> None:
       help='Do not ever overwrite any '
       'existing files. Mutually exclusive with -f.')
   parser.add_argument(
+      '-r',
+      '--rename',
+      action='store_true',
+      help='Do not ever overwrite any '
+      'existing files. Instead rename the existing file '
+      'with a timestamp, before copying the newer file. ')
+  parser.add_argument(
       '-L',
       '--copy-links',
       action='store_true',
@@ -832,6 +849,7 @@ def main() -> None:
   delete_missing = args.delete
   allow_replace = args.force
   allow_overwrite = not args.no_clobber
+  rename_dst = args.rename
   copy_links = args.copy_links
   dry_run = args.dry_run
   local_to_remote = True
