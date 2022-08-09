@@ -587,10 +587,11 @@ class FileSyncer(object):
         dst_stat = localstat
       dst_name = self.dst[i] + name
       if self.rename_dst:
-          logging.info('%s-Renaming-Conflicting: %r', self.push[i], dst_name)
-          dst_rename = '%s_%d' % (dst_name, dst_stat.st_mtime)
+          p, ext = os.path.splitext(dst_name)
+          dst_rename = p+b"_"+str(int(dst_stat.st_mtime)).encode('ascii')+ext
+          logging.info('%s-Renaming-Conflicting: %r -> %r', self.push[i], dst_name, dst_rename)
           if os.path.exists(dst_rename):
-              logging.info('Rename Target Exists: %s', dst_rename)
+              logging.error('Rename Target Exists: %s', dst_rename)
               continue
           if not self.dry_run:
               os.rename(dst_name, dst_rename)
