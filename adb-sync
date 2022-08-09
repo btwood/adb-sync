@@ -471,7 +471,7 @@ class FileSyncer(object):
 
   def __init__(self, adb: AdbFileSystem, local_path: bytes, remote_path: bytes,
                local_to_remote: bool, remote_to_local: bool,
-               preserve_times: bool, delete_missing: bool,
+               preserve_times: bool, delete_missing: bool, rename_dst: bool,
                allow_overwrite: bool, allow_replace: bool, copy_links: bool,
                dry_run: bool) -> None:
     self.local = local_path
@@ -483,6 +483,7 @@ class FileSyncer(object):
     self.delete_missing = delete_missing
     self.allow_overwrite = allow_overwrite
     self.allow_replace = allow_replace
+    self.rename_dst = rename_dst
     self.copy_links = copy_links
     self.dry_run = dry_run
     self.num_bytes = 0
@@ -884,7 +885,8 @@ def main() -> None:
     logging.info('Sync: local %r, remote %r', localpaths[i], remotepaths[i])
     syncer = FileSyncer(adb, localpaths[i], remotepaths[i], local_to_remote,
                         remote_to_local, preserve_times, delete_missing,
-                        allow_overwrite, allow_replace, copy_links, dry_run)
+                        allow_overwrite, allow_replace, rename_dst, copy_links, 
+                        dry_run)
     if not syncer.IsWorking():
       logging.error('Device not connected or not working.')
       return
